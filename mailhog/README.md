@@ -6,6 +6,23 @@ Pour un déploiement on-premises sur un VPS avec un nom de domaine, vous devrez 
 2. **Nom de Domaine**: Un nom de domaine configuré pour pointer vers votre VPS.
 3. **Ingress Controller**: Assurez-vous d'avoir un Ingress Controller installé et configuré dans votre cluster Kubernetes (par exemple, NGINX Ingress Controller).
 
+### Étape 0: Configurer HAProxy
+Configurez HAProxy pour acheminer le trafic HTTP/HTTPS vers votre Ingress Controller dans Kubernetes. Voici un exemple de configuration HAProxy (dans /etc/haproxy/haproxy.cfg):
+
+```plaintext
+Copy code
+frontend http_front
+   bind *:80
+   acl host_mailhog hdr(host) -i mailhog.votre-domaine.com
+   use_backend mailhog_backend if host_mailhog
+
+backend mailhog_backend
+   balance roundrobin
+   server k8s_master IP_ADDRESS:PORT check
+```
+
+Remplacez mailhog.votre-domaine.com par votre nom de domaine réel, IP_ADDRESS par l'adresse IP de votre Ingress Controller, et PORT par le port de votre Ingress Controller (généralement 80).
+
 ### Étape 1: Créer le Namespace pour MailHog
 
 Créez un fichier `mailhog-namespace.yaml` pour définir le namespace.
